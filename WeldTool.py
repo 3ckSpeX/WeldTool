@@ -29,6 +29,10 @@ def vertex_active(me):
     else:
         return None
 
+def draw_poly(points):
+    for i in range(len(points)):
+        bgl.glVertex2f(points[i][0],points[i][1])
+
 def DrawByVertices(mode, verts2d, color, thickness):
     bgl.glColor4f(*color)
     bgl.glEnable(bgl.GL_BLEND)
@@ -72,18 +76,23 @@ def draw_callback_px(self, context):
     if self.started and not self.start_vertex == None:
         #print(self.start_vertex)
         verts = [self.start_vertex, self.end_vertex]
-        DrawByVertices("lines", verts, self.color, 2)
+        DrawByVertices("lines", verts, self.color, 1)
         #bgl.glVertex2i(self.start_vertex[0], self.start_vertex[1])
         #bgl.glVertex2i(self.end_vertex[0], self.end_vertex[1])
 
     
     bgl.glEnd()
-
+    '''
     v1 = self.end_vertex
-    size = 6
+    size = 10
     cirVerts = [(v1[0] + size, v1[1]), (v1[0], v1[1] + size), (v1[0] - size, v1[1]), (v1[0], v1[1] - size)]
-    DrawByVertices("lines", cirVerts, [1, 1, 1, 1], 3)
-
+    #DrawByVertices("lines", cirVerts, [1, 1, 1, 1], 3)
+    
+    bgl.glColor4f(1, 1, 1, 0.3)
+    bgl.glBegin(bgl.GL_POLYGON)
+    draw_poly(cirVerts)
+    bgl.glEnd()
+    '''
     # restore opengl defaults
     bgl.glLineWidth(1)
     bgl.glDisable(bgl.GL_BLEND)
@@ -96,12 +105,12 @@ def main(context, event, started):
     coord = event.mouse_region_x, event.mouse_region_y
 
     if started:
-        result = bpy.ops.view3d.select(extend=True, location=coord)
+        result = bpy.ops.view3d.select(toggle=True, location=coord)
     else:
         result = bpy.ops.view3d.select(extend=False, location=coord)
 
     if result == {'PASS_THROUGH'}:
-        print('pass')
+        #print('pass')
         bpy.ops.mesh.select_all(action='DESELECT')
 
 
@@ -125,13 +134,13 @@ class WeldTool(bpy.types.Operator):
         context.area.tag_redraw()
 
         if event.ctrl:
-            self.color = (1, 0, 0, 1)
+            self.color = (1, 0, 0, 0.6)
         elif event.alt:
-            self.color = (0, 0, 1, 1)
+            self.color = (0, 0, 1, 0.6)
         elif event.shift:
-            self.color = (0, 1, 0, 1)
+            self.color = (0, 1, 0, 0.6)
         else:
-            self.color = (1, 1, 1, 1)
+            self.color = (1, 1, 1, 0.6)
         
         if not self.end_vertexloc == None:
             self.start_vertex = location_3d_to_region_2d(context.region, context.space_data.region_3d, self.end_vertexloc)
@@ -214,10 +223,10 @@ class WeldTool(bpy.types.Operator):
             #print(self.prev_selectmode[0], self.prev_selectmode[1], self.prev_selectmode[2])
             if not bpy.context.scene.tool_settings.mesh_select_mode[:] == self.prev_selectmode:
             #    self.report({'INFO'}, 'selectmode')
-                print('dsfsdfsd')
+                #print('dsfsdfsd')
                 bpy.context.tool_settings.mesh_select_mode = self.prev_selectmode
                 #bpy.ops.mesh.select_mode(self.prev_selectmode)
-            bpy.context.window.cursor_set("CROSSHAIR")
+            #bpy.context.window.cursor_set("CROSSHAIR")
             context.area.header_text_set()
             return {'CANCELLED'}
 
@@ -240,7 +249,8 @@ class WeldTool(bpy.types.Operator):
             #print(self.prev_selectmode[0], self.prev_selectmode[1], self.prev_selectmode[2])
             bpy.ops.mesh.select_mode(type="VERT")
             #print(self.prev_selectmode[0], self.prev_selectmode[1], self.prev_selectmode[2])
-            bpy.context.window.cursor_set("NONE")
+            #bpy.context.window.cursor_set("NONE")
+            bpy.context.window.cursor_set("CROSSHAIR")
             updateHeaderText(context, self)
             return {'RUNNING_MODAL'}
         else:
